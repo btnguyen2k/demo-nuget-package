@@ -86,7 +86,7 @@ jobs:
             sed -i -E "s/<<VERSION>>/v${VERSION}/" ./*.md
 
             echo ========== update nuget.csproj file ==========
-            copy nuget.csproj nuget.csproj.bak
+            cp nuget.csproj nuget.csproj.bak
             sed -i -E "s/<<VERSION>>/${VERSION}/" ./nuget.csproj
 
             echo ========== Build and Publish NuGet package ==========

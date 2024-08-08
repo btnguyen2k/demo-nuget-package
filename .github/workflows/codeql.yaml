@@ -38,5 +38,10 @@ jobs:
       # 📚 https://git.io/JvXDl
       # - name: Autobuild
         # uses: github/codeql-action/autobuild@v3
+      - name: Build
+        run: |
+          sed -i -E "s/<<VERSION>>/0.0.0/" ./nuget.csproj
+          dotnet build
+          cd content/consoleasync/ && dotnet build
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
