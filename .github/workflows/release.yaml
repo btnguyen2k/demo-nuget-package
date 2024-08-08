@@ -86,11 +86,14 @@ jobs:
             sed -i -E "s/<<VERSION>>/v${VERSION}/" ./*.md
 
             echo ========== update nuget.csproj file ==========
+            copy nuget.csproj nuget.csproj.bak
             sed -i -E "s/<<VERSION>>/${VERSION}/" ./nuget.csproj
 
             echo ========== Build and Publish NuGet package ==========
             dotnet pack
             dotnet nuget push *.nupkg --source "nuget.org" --api-key ${{ secrets.NUGET_API_KEY }}
+
+            mv -f nuget.csproj.bak nuget.csproj
 
             echo ========== commit updates ==========
             git config --global user.email "<>"
