@@ -56,3 +56,26 @@ jobs:
           branches: ${{ github.ref_name }}
           tag-prefix: ${{ env.TAG_PREFIX }}
           tag-only: true
+      - name: Update NuGet metadata
+        run: |
+          RESULT='${{ steps.release_dry_run.outputs.result }}'
+          VERSION='${{ steps.release_dry_run.outputs.releaseVersion }}'
+          RELEASE_NOTES='${{ steps.release_dry_run.outputs.releaseNotes }}'
+
+          echo "🕘 Updating module meta..."
+          echo "   - RESULT: ${RESULT}"
+          echo "   - VERSION: ${VERSION}"
+          echo "   - RELEASE_NOTES: ${RELEASE_NOTES}"
+          echo ""
+
+          if [ "${RESULT}" == "SUCCESS" ]; then
+            echo ========== update nuget.csproj file ==========
+            sed -i -E "s/<<VERSION>>/${VERSION}/" ./nuget.csproj
+            sed -i -E "s/<<RELEASE-NOTES>>/${RELEASE_NOTES}/" ./nuget.csproj
+            sed -i -E "s/<<RELEASE_NOTES>>/${RELEASE_NOTES}/" ./nuget.csproj
+            echo "✅ Done."
+
+            cat ./nuget.csproj
+          else
+            echo "❎ SKIPPED."
+          fi
