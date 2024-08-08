@@ -32,7 +32,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageReleaseNotes><<RELEASE-NOTES>></PackageReleaseNotes>
+    <PackageReleaseNotes>See https://github.com/btnguyen2k/demo-nuget-package/releases</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup>

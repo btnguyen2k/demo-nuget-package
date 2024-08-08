@@ -71,9 +71,6 @@ jobs:
           if [ "${RESULT}" == "SUCCESS" ]; then
             echo ========== update nuget.csproj file ==========
             sed -i -E "s/<<VERSION>>/${VERSION}/" ./nuget.csproj
-            echo sed -i -E "s/<<RELEASE-NOTES>>/${RELEASE_NOTES}/" ./nuget.csproj
-            echo sed -i -E "s/<<RELEASE_NOTES>>/${RELEASE_NOTES}/" ./nuget.csproj
-            echo "✅ Done."
 
             cat ./nuget.csproj
           else
