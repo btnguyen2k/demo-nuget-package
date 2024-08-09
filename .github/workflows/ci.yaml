@@ -9,29 +9,12 @@ on:
   workflow_call:
 
 env:
-  TEMPLATE_ROOT: ./content/Dwt
   TAG_PREFIX: v
+  DOTNET_VERSION: '8.x'
+  NUGET_PROJECT_FILE: ./nuget.csproj
 
 jobs:
   BuildAndTest:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dotnet: [ '8.x', '9.x' ]
-    name: Build and test with dotnet ${{ matrix.dotnet }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup dotnet ${{ matrix.dotnet }}
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ matrix.dotnet }}
-      - name: Display dotnet version
-        run: dotnet --version
-
-  ReleaseDryRun:
-    if: github.event_name == 'push'
-    needs: BuildAndTest
     runs-on: ubuntu-latest
     outputs:
       RESULT: ${{ steps.release_dry_run.outputs.result }}
@@ -57,22 +40,38 @@ jobs:
           tag-prefix: ${{ env.TAG_PREFIX }}
           tag-only: true
       - name: Update NuGet metadata
+        uses: actions/github-script@v7
+        env:
+          RESULT: ${{ steps.release_dry_run.outputs.result }}
+          VERSION: ${{ steps.release_dry_run.outputs.releaseVersion }}
+          RELEASE_NOTES: ${{ steps.release_dry_run.outputs.releaseNotes }}
+        with:
+            script: |
+              console.log(`🐛 [DEBUG] RESULT: ${process.env['RESULT']}`);
+              if (process.env['RESULT'] != 'SUCCESS') {
+                console.log('❎ SKIPPED.');
+                return;
+              }
+              console.log(`🐛 [DEBUG] RELEASE VERSION: ${process.env['VERSION']}`);
+              console.log(`🐛 [DEBUG] RELEASE NOTES: ${process.env['RELEASE_NOTES']}`);
+
+              var releaseNotes = process.env['RELEASE_NOTES'];
+              releaseNotes = releaseNotes.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              var fs = require('fs');
+              var content = fs.readFileSync('${{ env.NUGET_PROJECT_FILE }}', 'utf8');
+              content = content.replace(/<<VERSION>>/g, process.env['VERSION']);
+              content = content.replace(/<<RELEASE-NOTES>>/g, releaseNotes);
+              content = content.replace(/<<RELEASE_NOTES>>/g, releaseNotes);
+              fs.writeFileSync('${{ env.NUGET_PROJECT_FILE }}.final', content);
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      - name: Display dotnet version
+        run: dotnet --version
+      - name: Build NuGet package
         run: |
-          RESULT='${{ steps.release_dry_run.outputs.result }}'
-          VERSION='${{ steps.release_dry_run.outputs.releaseVersion }}'
-          RELEASE_NOTES='${{ steps.release_dry_run.outputs.releaseNotes }}'
-
-          echo "🕘 Updating module meta..."
-          echo "   - RESULT: ${RESULT}"
-          echo "   - VERSION: ${VERSION}"
-          echo "   - RELEASE_NOTES: ${RELEASE_NOTES}"
-          echo ""
-
-          if [ "${RESULT}" == "SUCCESS" ]; then
-            echo ========== update nuget.csproj file ==========
-            sed -i -E "s/<<VERSION>>/${VERSION}/" ./nuget.csproj
-
-            cat ./nuget.csproj
-          else
-            echo "❎ SKIPPED."
-          fi
+          echo "🕘 Building NuGet package..."
+          mv -f ${{ env.NUGET_PROJECT_FILE }}.final ${{ env.NUGET_PROJECT_FILE }}
+          cat ${{ env.NUGET_PROJECT_FILE }}
+          dotnet pack
