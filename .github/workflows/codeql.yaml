@@ -41,6 +41,8 @@ jobs:
       - name: Build
         run: |
           sed -i -E "s/<<VERSION>>/0.0.0/" ./nuget.csproj
+          sed -i -E "s/<<RELEASE-NOTES>>/empty/" ./nuget.csproj
+          sed -i -E "s/<<RELEASE_NOTES>>/empty/" ./nuget.csproj
           dotnet build
           cd content/consoleasync/ && dotnet build
       - name: Perform CodeQL Analysis
