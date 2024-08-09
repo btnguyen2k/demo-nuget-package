@@ -49,7 +49,7 @@ jobs:
   Release:
     runs-on: ubuntu-latest
     if: |
-      github.event.pull_request.merged == true
+      (github.event.pull_request.merged == true) && (needs.ReleaseDryRun.outputs.RESULT == 'SUCCESS')
     needs: [ ReleaseDryRun ]
     permissions:
       contents: write # to be able to publish a GitHub release
@@ -73,10 +73,6 @@ jobs:
             script: |
               console.log('🕘 Updating metadata...')
               console.log(`   🐛 [DEBUG] RESULT: ${process.env['RESULT']}`);
-              if (process.env['RESULT'] != 'SUCCESS') {
-                console.log('❎ SKIPPED.');
-                return;
-              }
               console.log(`   🐛 [DEBUG] RELEASE VERSION: ${process.env['VERSION']}`);
               console.log(`   🐛 [DEBUG] RELEASE NOTES: ${process.env['RELEASE_NOTES']}`);
 

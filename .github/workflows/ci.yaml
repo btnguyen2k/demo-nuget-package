@@ -72,6 +72,15 @@ jobs:
       - name: Build NuGet package
         run: |
           echo "🕘 Building NuGet package..."
-          mv -f ${{ env.NUGET_PROJECT_FILE }}.final ${{ env.NUGET_PROJECT_FILE }}
+          RESULT='${{ steps.release_dry_run.outputs.result }}'
+          VERSION='${{ steps.release_dry_run.outputs.releaseVersion }}'
+          RELEASE_NOTES='${{ steps.release_dry_run.outputs.releaseNotes }}'
+          if [ "${RESULT}" == "SUCCESS" ]; then
+            mv -f ${{ env.NUGET_PROJECT_FILE }}.final ${{ env.NUGET_PROJECT_FILE }}
+          else
+            sed -i -E "s/<<VERSION>>/0.0.0/" ${{ env.NUGET_PROJECT_FILE }}
+            sed -i -E "s/<<RELEASE-NOTES>>/empty/" ${{ env.NUGET_PROJECT_FILE }}
+            sed -i -E "s/<<RELEASE_NOTES>>/empty/" ${{ env.NUGET_PROJECT_FILE }}
+          fi
           cat ${{ env.NUGET_PROJECT_FILE }}
           dotnet pack
