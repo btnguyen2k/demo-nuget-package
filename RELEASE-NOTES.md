@@ -1,5 +1,11 @@
 # demo-nuget-package release notes
 
+## 2024-08-09 - v0.1.2
+
+### Fixed/Improvement
+
+- Improvement: use `actions/github-script` to update NuGet metadata.
+
 ## 2024-08-08 - v0.1.1
 
 ### Fixed/Improvement
